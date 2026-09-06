@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# env
+server/.env
+.env
+
+# build output
+client/dist/
+client/build/
+
+# logs
+npm-debug.log*
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# exported excel files (generated at runtime)
+server/exports/
