@@ -14,6 +14,8 @@ export default function Inventory() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [categories, setCategories] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
@@ -23,8 +25,9 @@ export default function Inventory() {
   async function loadProducts() {
     setLoading(true);
     try {
-      const { data } = await api.get("/products", { params: { search, status: statusFilter } });
+      const { data } = await api.get("/products", { params: { search, status: statusFilter, category: categoryFilter } });
       setProducts(data.products);
+      if (categoryFilter === "all" && !search) setCategories([...new Set(data.products.map((p) => p.category))].sort());
     } catch {
       showToast("Failed to load inventory.", "error");
     } finally {
@@ -36,7 +39,7 @@ export default function Inventory() {
     const timer = setTimeout(loadProducts, 250);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, statusFilter]);
+  }, [search, statusFilter, categoryFilter]);
 
   async function handleAddOrEdit(form) {
     if (editingProduct) {
@@ -77,7 +80,7 @@ export default function Inventory() {
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" })); const link = document.createElement("a"); link.href = url; link.download = "stockease-products-template.csv"; link.click(); URL.revokeObjectURL(url);
   }
 
-  const categories = ["all", ...new Set(products.map((p) => p.category))];
+
 
   return (
     <div className="page">
@@ -107,6 +110,14 @@ export default function Inventory() {
           <option value="AVAILABLE">Available</option>
           <option value="LOW_STOCK">Low Stock</option>
           <option value="OUT_OF_STOCK">Out of Stock</option>
+        </select>
+      </div>
+
+      <div className="category-select-row">
+        <label htmlFor="inventory-category">Category</label>
+        <select id="inventory-category" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+          <option value="all">All Products</option>
+          {categories.map((category) => <option key={category} value={category}>{category}</option>)}
         </select>
       </div>
 

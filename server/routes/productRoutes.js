@@ -40,7 +40,7 @@ function parseCsv(csv) {
   for (let i = 0; i < csv.length; i += 1) { const char = csv[i]; if (char === '"') { if (quoted && csv[i + 1] === '"') { value += '"'; i += 1; } else quoted = !quoted; } else if (char === "," && !quoted) { row.push(value.trim()); value = ""; } else if ((char === "\n" || char === "\r") && !quoted) { if (char === "\r" && csv[i + 1] === "\n") i += 1; row.push(value.trim()); if (row.some(Boolean)) rows.push(row); row = []; value = ""; } else value += char; }
   if (quoted) throw new Error("A quoted value in the CSV is not closed."); row.push(value.trim()); if (row.some(Boolean)) rows.push(row); return rows;
 }
-const headerAliases = { name:"name", productname:"name", category:"category", price:"price", sellingprice:"price", purchaseprice:"purchasePrice", costprice:"purchasePrice", stock:"stock", quantity:"stock", minimumstock:"minimumStock", minstock:"minimumStock", barcode:"barcode" };
+const headerAliases = { name:"name", productname:"name", category:"category", price:"price", sellingprice:"price", purchaseprice:"purchasePrice", costprice:"purchasePrice", stock:"stock", quantity:"stock", minimumstock:"minimumStock", minstock:"minimumStock", barcode:"barcode", expirydate:"expiryDate", expiry:"expiryDate" };
 const headerKey = (header) => header.toLowerCase().replace(/^\uFEFF/, "").replace(/[ _-]/g, "");
 router.post("/import", async (req, res) => {
   try {
@@ -57,7 +57,9 @@ router.post("/import", async (req, res) => {
       const data = {}; columns.forEach((column, columnIndex) => { if (column) data[column] = row[columnIndex] || ""; });
       const line = index + 2; const price = Number(data.price); const purchasePrice = Number(data.purchasePrice); const stock = data.stock === "" || data.stock === undefined ? 0 : Number(data.stock); const minimumStock = data.minimumStock === "" || data.minimumStock === undefined ? 5 : Number(data.minimumStock);
       if (!data.name.trim() || !data.category.trim()) errors.push("Row " + line + ": name and category are required."); if (!Number.isFinite(price) || price < 0) errors.push("Row " + line + ": price must be a non-negative number."); if (!Number.isFinite(purchasePrice) || purchasePrice < 0) errors.push("Row " + line + ": purchasePrice must be a non-negative number."); if (!Number.isFinite(stock) || stock < 0) errors.push("Row " + line + ": stock must be a non-negative number."); if (!Number.isFinite(minimumStock) || minimumStock < 0) errors.push("Row " + line + ": minimumStock must be a non-negative number.");
-      return { userId: req.userId, name: (data.name || "").trim(), category: (data.category || "").trim(), price, purchasePrice, stock, minimumStock, barcode: (data.barcode || "").trim() };
+      const expiryDate = data.expiryDate ? new Date(data.expiryDate) : null;
+      if (data.expiryDate && Number.isNaN(expiryDate.getTime())) errors.push("Row " + line + ": expiryDate must be a valid date.");
+      return { userId: req.userId, name: (data.name || "").trim(), category: (data.category || "").trim(), price, purchasePrice, stock, minimumStock, barcode: (data.barcode || "").trim(), expiryDate };
     });
     if (errors.length) return res.status(400).json({ message: "The CSV has invalid rows. Nothing was imported.", errors: errors.slice(0, 10) });
     const createdProducts = await Product.insertMany(products);
@@ -81,7 +83,7 @@ router.get("/:id", async (req, res) => {
 // POST /api/products - create a new product for the logged-in user.
 router.post("/", async (req, res) => {
   try {
-    const { name, category, price, purchasePrice, stock, minimumStock, barcode } = req.body;
+    const { name, category, price, purchasePrice, stock, minimumStock, barcode, expiryDate } = req.body;
 
     if (!name || !category || price === undefined || purchasePrice === undefined) {
       return res.status(400).json({ message: "Name, category, price and purchase price are required." });
@@ -101,6 +103,7 @@ router.post("/", async (req, res) => {
       stock: initialStock,
       minimumStock: Number(minimumStock) || 5,
       barcode: (barcode || "").trim(),
+      expiryDate: expiryDate || null,
     });
 
     // If the product starts with stock on hand, log it as a PURCHASE
@@ -130,7 +133,7 @@ router.put("/:id", async (req, res) => {
     const product = await Product.findOne({ _id: req.params.id, userId: req.userId });
     if (!product) return res.status(404).json({ message: "Product not found." });
 
-    const { name, category, price, purchasePrice, minimumStock, barcode, stock } = req.body;
+    const { name, category, price, purchasePrice, minimumStock, barcode, stock, expiryDate } = req.body;
 
     if (name !== undefined) product.name = name.trim();
     if (category !== undefined) product.category = category.trim();
@@ -138,6 +141,7 @@ router.put("/:id", async (req, res) => {
     if (purchasePrice !== undefined) product.purchasePrice = Number(purchasePrice);
     if (minimumStock !== undefined) product.minimumStock = Number(minimumStock);
     if (barcode !== undefined) product.barcode = barcode.trim();
+    if (expiryDate !== undefined) product.expiryDate = expiryDate || null;
 
     // A manual stock adjustment (not via billing) is logged as ADJUSTMENT.
     if (stock !== undefined && Number(stock) !== product.stock) {

@@ -3,9 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../components/Toast";
 
-const DEMO_EMAIL = "admin@stockease.com";
-const DEMO_PASSWORD = "admin@123";
-
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -14,12 +11,6 @@ export default function Login() {
   const { login } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
-
-  function useDemoAccount() {
-    setEmail(DEMO_EMAIL);
-    setPassword(DEMO_PASSWORD);
-    setError("");
-  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -83,14 +74,6 @@ export default function Login() {
           Don't have an account? <Link to="/register">Register</Link>
         </p>
 
-        <div className="demo-login-box">
-          <p className="demo-login-title">Demo Account</p>
-          <p className="demo-login-line">Email: {DEMO_EMAIL}</p>
-          <p className="demo-login-line">Password: {DEMO_PASSWORD}</p>
-          <button type="button" className="btn btn-secondary btn-block" onClick={useDemoAccount}>
-            Use Demo Account
-          </button>
-        </div>
       </div>
     </div>
   );

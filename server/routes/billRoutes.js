@@ -74,6 +74,7 @@ async function processBill({ userId, customerName, items, discount, paymentMetho
         productName: product.name,
         quantity: qty,
         price: product.price,
+        costPrice: product.purchasePrice,
         total: lineTotal,
       },
     });

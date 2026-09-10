@@ -2,10 +2,13 @@ import React, { useEffect, useMemo, useState } from "react";
 import api from "../api";
 import { useToast } from "../components/Toast";
 import BillInvoice from "../components/BillInvoice";
+import BarcodeScanner from "../components/BarcodeScanner";
 
 export default function Billing() {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
+  const [barcodeInput, setBarcodeInput] = useState("");
+  const [scannerOpen, setScannerOpen] = useState(false);
   const [cart, setCart] = useState([]); // { product, quantity }
   const [customerName, setCustomerName] = useState("");
   const [discount, setDiscount] = useState(0);
@@ -35,6 +38,15 @@ export default function Billing() {
       (p) => p.name.toLowerCase().includes(q) || (p.barcode || "").toLowerCase().includes(q)
     );
   }, [products, search]);
+
+  function addBarcodeToCart(value) {
+    const barcode = value.trim();
+    if (!barcode) return;
+    const product = products.find((p) => (p.barcode || "").trim().toLowerCase() === barcode.toLowerCase());
+    if (!product) { showToast("Product not found.", "error"); return; }
+    addToCart(product);
+    setBarcodeInput("");
+  }
 
   function addToCart(product) {
     if (product.stock <= 0) {
@@ -110,6 +122,12 @@ export default function Billing() {
 
       <div className="pos-layout">
         <div className="pos-products card">
+                    <div className="billing-scanner">
+            <input className="search-input" placeholder="Enter barcode..." value={barcodeInput} onChange={(e) => setBarcodeInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addBarcodeToCart(barcodeInput); } }} />
+            <button type="button" className="btn btn-secondary" onClick={() => addBarcodeToCart(barcodeInput)}>Add by Barcode</button>
+            <button type="button" className="btn btn-primary" onClick={() => setScannerOpen((open) => !open)}>{scannerOpen ? "Close Scanner" : "Scan Barcode"}</button>
+          </div>
+          {scannerOpen && <BarcodeScanner onDetected={(barcode) => { setScannerOpen(false); addBarcodeToCart(barcode); }} onClose={() => setScannerOpen(false)} />}
           <input
             className="search-input"
             placeholder="Search product by name or barcode..."

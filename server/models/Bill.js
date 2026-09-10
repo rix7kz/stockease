@@ -10,6 +10,7 @@ const billItemSchema = new mongoose.Schema(
     productName: { type: String, required: true },
     quantity: { type: Number, required: true, min: 1 },
     price: { type: Number, required: true, min: 0 }, // price at time of sale
+    costPrice: { type: Number, min: 0, default: 0 }, // purchase price at time of sale
     total: { type: Number, required: true, min: 0 },
   },
   { _id: false }

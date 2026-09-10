@@ -445,3 +445,20 @@ select {
   .form-grid .span-2 { grid-column: span 1; }
   .cart-item { grid-template-columns: 1fr; text-align: left; }
 }
+
+.category-menu { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: -4px 0 18px; }
+.category-menu-item { padding: 8px 12px; border: 1px solid var(--border); border-radius: 999px; background: rgba(0, 0, 0, 0.4); color: var(--text-muted); cursor: pointer; font-weight: 600; font-size: 0.82rem; }
+.category-menu-item:hover { border-color: var(--accent); color: var(--text); }
+.category-menu-item.active { background: var(--gradient); border-color: transparent; color: #fff; box-shadow: 0 0 14px rgba(168, 85, 247, 0.24); }
+
+.category-select-row { display: flex; align-items: center; gap: 10px; margin: -4px 0 18px; color: var(--text-muted); font-size: 0.85rem; }
+.category-select-row select { min-width: 190px; }
+
+.barcode-input-row, .billing-scanner { display: flex; gap: 8px; align-items: center; }
+.barcode-input-row input { flex: 1; }
+.billing-scanner { margin-bottom: 10px; }
+.billing-scanner .search-input { min-width: 150px; }
+.scanner-panel { margin: 10px 0; padding: 12px; border: 1px dashed var(--accent-2); border-radius: 10px; background: rgba(34, 211, 238, 0.06); }
+.scanner-video { display: block; width: 100%; max-height: 260px; object-fit: cover; border-radius: 8px; background: #000; }
+.scanner-message { color: var(--text-muted); font-size: 0.82rem; margin: 8px 0; }
+@media (max-width: 600px) { .billing-scanner, .barcode-input-row { align-items: stretch; flex-direction: column; } }

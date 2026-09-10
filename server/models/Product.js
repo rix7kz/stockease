@@ -17,6 +17,7 @@ const productSchema = new mongoose.Schema(
     stock: { type: Number, required: true, min: 0, default: 0 },
     minimumStock: { type: Number, required: true, min: 0, default: 5 },
     barcode: { type: String, trim: true, default: "" },
+    expiryDate: { type: Date, default: null },
   },
   { timestamps: true }
 );

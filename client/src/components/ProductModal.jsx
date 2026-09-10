@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import BarcodeScanner from "./BarcodeScanner";
 
 const emptyForm = {
   name: "",
@@ -8,12 +9,14 @@ const emptyForm = {
   stock: "",
   minimumStock: "",
   barcode: "",
+  expiryDate: "",
 };
 
 export default function ProductModal({ open, onClose, onSubmit, initialProduct }) {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   useEffect(() => {
     if (initialProduct) {
@@ -25,6 +28,7 @@ export default function ProductModal({ open, onClose, onSubmit, initialProduct }
         stock: initialProduct.stock ?? "",
         minimumStock: initialProduct.minimumStock ?? "",
         barcode: initialProduct.barcode || "",
+        expiryDate: initialProduct.expiryDate ? initialProduct.expiryDate.slice(0, 10) : "",
       });
     } else {
       setForm(emptyForm);
@@ -96,8 +100,12 @@ export default function ProductModal({ open, onClose, onSubmit, initialProduct }
           </label>
           <label className="span-2">
             Barcode (optional)
-            <input name="barcode" value={form.barcode} onChange={handleChange} placeholder="e.g. 8901234567" />
+            <div className="barcode-input-row">
+              <input name="barcode" value={form.barcode} onChange={handleChange} placeholder="Enter or scan barcode" />
+              <button type="button" className="btn btn-secondary" onClick={() => setScannerOpen(true)}>Scan Barcode</button>
+            </div>
           </label>
+          {scannerOpen && <div className="span-2"><BarcodeScanner onDetected={(barcode) => { setForm((current) => ({ ...current, barcode })); setScannerOpen(false); }} onClose={() => setScannerOpen(false)} /></div>}
 
           <div className="modal-actions span-2">
             <button type="button" className="btn btn-ghost" onClick={onClose}>
